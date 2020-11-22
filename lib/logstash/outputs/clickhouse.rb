@@ -135,7 +135,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
           scrkey = source
           next unless src.key?(scrkey)
 
-          res[dstkey] = src[scrkey]
+          res[dstkey] = src[scrkey].to_s
         when Array then
           scrkey = source[0]
           next unless src.key?(scrkey)
