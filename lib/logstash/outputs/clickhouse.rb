@@ -142,6 +142,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
           pattern = source[1]
           replace = source[2]
           res[dstkey] = src[scrkey].sub( Regexp.new(pattern), replace )
+          @logger.warn("Regex : ", :source =>  src[scrkey],:pattern => pattern, :replace =>replace, :result => res[dstkey])
       end
     end
     res
