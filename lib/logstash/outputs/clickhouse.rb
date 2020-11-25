@@ -132,17 +132,24 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
     @mutations.each_pair do |dstkey, source|
       case source
         when String then
-          scrkey = source
-          next unless src.key?(scrkey)
-
-          res[dstkey] = src[scrkey].to_s
+          if source.include?('][')
+            srcval = src.dig(*(source[1..-2].split('][')))
+          else
+            srcval = src.dig(source)
+          end
+          next if srcval.nil?
+          res[dstkey] = srcval.to_s
         when Array then
-          scrkey = source[0]
-          next unless src.key?(scrkey)
+          if source[0].include?('][')
+            srcval = src.dig(*(source[0][1..-2].split('][')))
+          else
+            srcval = src.dig(source[0])
+          end
+          next if srcval.nil?
           pattern = source[1]
           replace = source[2]
-          res[dstkey] = src[scrkey].to_s.sub( Regexp.new(pattern), replace )
-          @logger.debug("Regex : ", :source =>  src[scrkey].to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
+          res[dstkey] = srcval.to_s.sub( Regexp.new(pattern), replace )
+          @logger.debug("Regex : ", :source =>  srcval.to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
       end
     end
     res
