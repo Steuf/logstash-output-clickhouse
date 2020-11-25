@@ -129,11 +129,13 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
   def mutate( src )
     return src if @mutations.empty?
     res = {}
+    @logger.error("Src : ", :src =>  src)
     @mutations.each_pair do |dstkey, source|
       case source
         when String then
           if source.include?('][')
             srcval = src.dig(*(source[1..-2].split('][')))
+            @logger.error("Src dig : ", :dig =>  *(source[1..-2].split('][')))
           else
             srcval = src.dig(source)
           end
