@@ -135,7 +135,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
         when String then
           if source.include?('][')
             srcval = src.dig(*(source[1..-2].split('][')))
-            @logger.error("Src dig : ", :dig =>  *(source[1..-2].split('][')))
+            @logger.error("Src dig : ", :dig =>  source[1..-2].split(']['))
           else
             srcval = src.dig(source)
           end
