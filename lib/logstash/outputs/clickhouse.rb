@@ -135,24 +135,24 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
         when String then
           if source.include?('][')
             @logger.debug("Src dig : ", :dig =>  source[1..-2].split(']['), :result => src.dig(*(source[1..-2].split(']['))))
-            res = src.dig(*(source[1..-2].split('][')))
+            result = src.dig(*(source[1..-2].split('][')))
           else
-            res = src[source]
+            result = src[source]
           end
-          next if res.nil?
+          next if result.nil?
 
-          res[dstkey] = res
+          res[dstkey] = result
         when Array then
           if source[0].include?('][')
-            res = src.dig(*(source[0][1..-2].split('][')))
+            result = src.dig(*(source[0][1..-2].split('][')))
           else
-            res = src[source[0]]
+            result = src[source[0]]
           end
-          next if res.nil?
+          next if result.nil?
           pattern = source[1]
           replace = source[2]
-          res[dstkey] = res.to_s.sub( Regexp.new(pattern), replace )
-          @logger.debug("Regex : ", :source =>  res.to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
+          res[dstkey] = result.to_s.sub( Regexp.new(pattern), replace )
+          @logger.debug("Regex : ", :source =>  result.to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
       end
     end
     @logger.debug("-- End : ", :res =>  res)
