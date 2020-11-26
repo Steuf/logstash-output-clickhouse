@@ -134,7 +134,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
       case source
         when String then
           if source.include?('][')
-            @logger.info("Src dig : ", :dig =>  source[1..-2].split(']['))
+            @logger.info("Src dig : ", :dig =>  source[1..-2].split(']['), :result => src.dig(*(source[1..-2].split(']['))))
           end
 
           scrkey = source
