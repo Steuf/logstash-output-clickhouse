@@ -136,7 +136,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
           if source.include?('][')
             @logger.info("Src dig : ", :dig =>  source[1..-2].split(']['), :result => src.dig(*(source[1..-2].split(']['))))
             result = src.dig(*(source[1..-2].split('][')))
-            next if result.nil?
+            next unless result.nil?
           else
             next unless src.key?(source)
             result = src[source]
@@ -146,7 +146,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
         when Array then
           if source[0].include?('][')
             result = src.dig(*(source[0][1..-2].split('][')))
-            next if result.nil?
+            next unless result.nil?
           else
             next unless src.key?(source[0])
             result = src[source[0]]
