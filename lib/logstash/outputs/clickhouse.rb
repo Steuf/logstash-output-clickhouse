@@ -140,17 +140,17 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
             result = src.key(source) ? src[source] : nil
           end
 
-          res[dstkey] = result.nil ? "" : result
+          res[dstkey] = result.nil? ? "" : result
         when Array then
           if source[0].include?('][')
             result = src.dig(*(source[0][1..-2].split('][')))
           else
             result = src.key(source[0]) ? src[source[0]] : nil
           end
-          
+
           pattern = source[1]
           replace = source[2]
-          res[dstkey] = result.nil ? "" : result.to_s.sub( Regexp.new(pattern), replace )
+          res[dstkey] = result.nil? ? "" : result.to_s.sub( Regexp.new(pattern), replace )
           @logger.info("Regex : ", :source =>  result.to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
       end
     end
