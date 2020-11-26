@@ -129,29 +129,33 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
   def mutate( src )
     return src if @mutations.empty?
     res = {}
-    @logger.info("-- Src : ", :src =>  src)
+    @logger.debug("-- Src : ", :src =>  src)
     @mutations.each_pair do |dstkey, source|
       case source
         when String then
           if source.include?('][')
-            @logger.info("Src dig : ", :dig =>  source[1..-2].split(']['), :result => src.dig(*(source[1..-2].split(']['))))
+            @logger.debug("Src dig : ", :dig =>  source[1..-2].split(']['), :result => src.dig(*(source[1..-2].split(']['))))
             res = src.dig(*(source[1..-2].split('][')))
           else
-            res = src[scrkey]
+            res = src[source]
           end
           next if res.nil?
 
           res[dstkey] = res
         when Array then
-          scrkey = source[0]
-          next unless src.key?(scrkey)
+          if source[0].include?('][')
+            res = src.dig(*(source[0][1..-2].split('][')))
+          else
+            res = src[source[0]]
+          end
+          next if res.nil?
           pattern = source[1]
           replace = source[2]
-          res[dstkey] = src[scrkey].to_s.sub( Regexp.new(pattern), replace )
-          @logger.info("Regex : ", :source =>  scrkey.to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
+          res[dstkey] = res.to_s.sub( Regexp.new(pattern), replace )
+          @logger.debug("Regex : ", :source =>  res.to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
       end
     end
-    @logger.info("-- End : ", :res =>  res)
+    @logger.debug("-- End : ", :res =>  res)
     res
   end
 
