@@ -129,32 +129,28 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
   def mutate( src )
     return src if @mutations.empty?
     res = {}
-    @logger.info("-- Src : ", :src =>  src)
     @mutations.each_pair do |dstkey, source|
       case source
         when String then
           if source.include?('][')
-            @logger.info("Src dig : ", :dig =>  source[1..-2].split(']['), :result => src.dig(*(source[1..-2].split(']['))))
             result = src.dig(*(source[1..-2].split('][')))
           else
-            result = src.key(source) ? src[source] : nil
+            result = src.dig(source)
           end
 
-          res[dstkey] = result.nil? ? "" : result
+          res[dstkey] = result.to_s
         when Array then
           if source[0].include?('][')
             result = src.dig(*(source[0][1..-2].split('][')))
           else
-            result = src.key(source[0]) ? src[source[0]] : nil
+            result = src.dig(source[0])
           end
 
           pattern = source[1]
           replace = source[2]
-          res[dstkey] = result.nil? ? "" : result.to_s.sub( Regexp.new(pattern), replace )
-          @logger.info("Regex : ", :source =>  result.to_s,:pattern => pattern, :replace =>replace,  :result => res[dstkey])
+          res[dstkey] = result.to_s.sub( Regexp.new(pattern), replace )
       end
     end
-    @logger.info("-- End : ", :res =>  res)
     res
   end
 
@@ -162,6 +158,8 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
   def flush(events, close=false)
     documents = ""  #this is the string of hashes that we push to Fusion as documents
 
+    @logger.info("Flush events", :table => @table, :size => events.length)
+    
     events.each do |event|
         documents << LogStash::Json.dump( mutate( event.to_hash() ) ) << "\n"
     end
@@ -207,7 +205,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
     # Block waiting for a token
     #@logger.info("Requesting token ", :tokens => request_tokens.length())
     token = @request_tokens.pop
-    @logger.debug("Got token", :tokens => @request_tokens.length)
+    @logger.info("Got token", :tokens => @request_tokens.length)
 
     # Create an async request
     begin
@@ -221,7 +219,8 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
       @request_tokens << token
 
       if response.code == 200
-        @logger.debug("Successfully submitted", 
+        @logger.info("Successfully submitted", 
+          :table => @table,
           :size => documents.length,
           :response_code => response.code,
           :uuid => uuid)
@@ -237,7 +236,7 @@ class LogStash::Outputs::ClickHouse < LogStash::Outputs::Base
             save_to_disk(documents)
           end
         else
-          @logger.info("Retrying request", :url => url, :message => response.message, :response => response.body, :uuid => uuid)
+          @logger.info("Retrying request", :table => @table, :url => url, :message => response.message, :response => response.body, :uuid => uuid)
           delay_attempt(req_count, @backoff_time)
           make_request(documents, hosts, query, con_count, req_count+1, host, uuid)
         end
